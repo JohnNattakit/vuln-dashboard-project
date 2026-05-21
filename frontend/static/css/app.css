@@ -31,7 +31,7 @@
   --clr-high:       #f97316;
   --clr-medium:     #eab308;
   --clr-low:        #22c55e;
-  --clr-info-purple:#a855f7;
+  --clr-info-blue:  #38bdf8;
   --clr-accent:     #3b82f6;
 }
 
@@ -192,9 +192,9 @@ html, body { height: 100%; }
   border: 1px solid rgba(34,197,94,.3);
 }
 .sev-info {
-  background-color: rgba(168,85,247,.15);
-  color: var(--clr-info-purple);
-  border: 1px solid rgba(168,85,247,.3);
+  background-color: rgba(56,189,248,.15);
+  color: var(--clr-info-blue);
+  border: 1px solid rgba(56,189,248,.3);
 }
 .stat-open   { background-color: rgba(239,68,68,.12); color: var(--clr-critical); border: 1px solid rgba(239,68,68,.25); }
 .stat-prog   { background-color: rgba(249,115,22,.12); color: var(--clr-high); border: 1px solid rgba(249,115,22,.25); }
@@ -203,7 +203,7 @@ html, body { height: 100%; }
 /* ── Progress bar custom colors ──────────────────────────── */
 .bg-high     { background-color: var(--clr-high) !important; }
 .bg-medium   { background-color: var(--clr-medium) !important; }
-.bg-info-pur { background-color: var(--clr-info-purple) !important; }
+.bg-info-pur { background-color: var(--clr-info-blue) !important; }
 
 /* ── Dashboard stat card ─────────────────────────────────── */
 .stat-val { font-size: 2rem; font-weight: 800; line-height: 1; }

@@ -8,7 +8,7 @@ import models, schemas
 
 router = APIRouter(prefix="/api/projects/{project_id}/upload", tags=["upload"])
 
-TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+TEMPLATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "templates")
 
 COLUMN_MAP = {
     "vulnerability": ["vulnerability", "vuln", "vulnerability name", "finding", "title", "name"],
