@@ -241,7 +241,7 @@ function renderStatCards() {
     { val: sev('High'),        lbl: 'High',            color: '', style: 'color:var(--clr-high)' },
     { val: sev('Medium'),      lbl: 'Medium',          color: 'text-warning' },
     { val: sev('Low'),         lbl: 'Low',             color: 'text-success' },
-    { val: sev('Information'), lbl: 'Information',     color: '', style: 'color:var(--clr-info-purple)' },
+    { val: sev('Information'), lbl: 'Information',     color: '', style: 'color:var(--clr-info-blue)' },
   ];
 
   document.getElementById('stat-cards').innerHTML =
@@ -269,7 +269,7 @@ function renderStatCards() {
 
 function renderCharts() {
   const sevLabels = ['Critical','High','Medium','Low','Information'];
-  const sevColors = ['#ef4444','#f97316','#eab308','#22c55e','#a855f7'];
+  const sevColors = ['#ef4444','#f97316','#eab308','#22c55e','#38bdf8'];
   const sevData   = sevLabels.map(s => findings.filter(f => f.risk_rating === s).length);
   const statLabels = ['Open','In Progress','Closed'];
   const statColors = ['#ef4444','#f97316','#22c55e'];
@@ -422,7 +422,7 @@ function renderTimeline() {
   maxD.setMonth(maxD.getMonth() + 1); maxD.setDate(1);
   const totalMs = maxD - minD;
 
-  const sevColors = { Critical:'#ef4444', High:'#f97316', Medium:'#eab308', Low:'#22c55e', Information:'#a855f7' };
+  const sevColors = { Critical:'#ef4444', High:'#f97316', Medium:'#eab308', Low:'#22c55e', Information:'#38bdf8' };
   const months = [];
   let d = new Date(minD);
   while (d < maxD) {
