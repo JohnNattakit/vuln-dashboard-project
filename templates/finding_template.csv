@@ -1,0 +1,20 @@
+﻿Finding Code,No,Vulnerability,Risk Rating,CVE ID,CVSS Score,Reference,Affected Endpoint,Observation & Implication,Recommendation,Status,Date Found,Due Date,Remark
+PT26_0001_01,1,SQL Injection in Login,High,CVE-2024-1234,8.8,CWE-89,"POST /api/v1/login
+POST /api/v1/search",The application does not properly sanitize user-supplied input in the login and search endpoints. An attacker can inject arbitrary SQL commands to bypass authentication or extract sensitive data from the database.,"1. Use parameterized queries or prepared statements.
+2. Implement input validation and whitelist allowed characters.
+3. Apply principle of least privilege to database accounts.",Open,2026-01-15,2026-02-15,Confirmed exploitable in UAT environment
+PT26_0001_02,2,Stored Cross-Site Scripting (XSS),High,,7.6,CWE-79 / OWASP A03:2021,"GET /api/v1/profile?name=
+POST /api/v1/comment","User-supplied data is reflected in the response without sanitization, allowing persistent script injection that executes in victim browsers.","1. Encode all user-supplied output using context-aware encoding.
+2. Implement Content Security Policy (CSP) headers.
+3. Validate and sanitize all input on the server side.",In Progress,2026-01-16,2026-02-20,Dev team has started patching
+PT26_0001_03,3,Insecure Direct Object Reference (IDOR),Medium,,6.5,CWE-639 / OWASP A01:2021,"GET /api/v1/users/{id}
+GET /api/v1/orders/{id}","The application uses sequential integer IDs without verifying that the requesting user is authorized to access the resource, allowing horizontal privilege escalation.","1. Implement proper authorization checks on every resource access.
+2. Use non-guessable identifiers (UUID) instead of sequential IDs.
+3. Enforce object-level access control (RBAC/ABAC).",Open,2026-01-17,2026-03-01,
+PT26_0001_04,4,Sensitive Data Exposure in API Response,Low,,4.3,CWE-200,GET /api/v1/user/profile,"API response includes sensitive internal fields (password_hash, internal_id, api_secret) that should not be exposed to clients.","1. Implement response filtering to exclude sensitive fields.
+2. Use dedicated response DTOs/serializers.
+3. Review all API responses for data over-exposure.",Open,2026-01-18,2026-03-15,
+PT26_0001_05,5,Missing Rate Limiting on Authentication,Information,,,OWASP A05:2021,"POST /api/v1/login
+POST /api/v1/otp/verify","No rate limiting is applied on authentication endpoints, making the application susceptible to brute-force and credential stuffing attacks.","1. Implement rate limiting (e.g., 5 attempts per minute per IP).
+2. Add progressive account lockout after N failed attempts.
+3. Implement CAPTCHA for repeated failures.",Open,2026-01-18,,

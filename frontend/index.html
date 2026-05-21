@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VulnTrack — Vulnerability Management</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     PROJECTS PAGE
+══════════════════════════════════════════════════════ -->
+<div id="page-projects" class="page active d-flex flex-column vh-100">
+
+  <nav class="navbar border-bottom px-4 py-3 flex-shrink-0">
+    <span class="navbar-brand fw-bold fs-5 mb-0 d-flex align-items-center gap-2">
+      🛡️ <span class="text-primary">VulnTrack</span>
+    </span>
+    <button class="btn btn-primary btn-sm" onclick="openProjectModal()">+ New Project</button>
+  </nav>
+
+  <div class="flex-grow-1 overflow-auto p-4">
+    <div class="mb-4">
+      <h4 class="fw-bold mb-1">Projects</h4>
+      <p class="text-muted small mb-0">Manage your penetration test engagements</p>
+    </div>
+    <div id="projects-grid" class="row g-3"></div>
+    <div id="projects-empty" class="text-center py-5 d-none">
+      <div class="fs-1 mb-3">📋</div>
+      <h5 class="fw-semibold mb-1">No projects yet</h5>
+      <p class="text-muted mb-4">Create your first penetration test project to get started.</p>
+      <button class="btn btn-primary" onclick="openProjectModal()">+ New Project</button>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     DASHBOARD PAGE (per-project)
+══════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page d-flex vh-100 overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar d-flex flex-column flex-shrink-0 border-end">
+
+    <div class="d-flex align-items-center gap-2 p-3 border-bottom">
+      <span class="fs-5">🛡️</span>
+      <div>
+        <div class="fw-bold small lh-sm">VulnTrack</div>
+        <div class="text-muted lh-sm" style="font-size:10px">Vulnerability Mgmt</div>
+      </div>
+    </div>
+
+    <div class="p-2 flex-grow-1">
+      <a href="#" class="sidebar-link nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2 active"
+         data-view="dashboard" onclick="showView('dashboard');return false;">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="#" class="sidebar-link nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2"
+         data-view="findings" onclick="showView('findings');return false;">
+        <span>🔍</span> Findings
+      </a>
+      <a href="#" class="sidebar-link nav-link rounded px-3 py-2 mb-1 d-flex align-items-center gap-2"
+         data-view="timeline" onclick="showView('timeline');return false;">
+        <span>📅</span> Timeline
+      </a>
+    </div>
+
+    <div class="p-3 border-top">
+      <div class="qs-label mb-2">QUICK STATS</div>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">Total</span>
+        <span id="qs-total" class="fw-bold">—</span>
+      </div>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">Open</span>
+        <span id="qs-open" class="fw-bold text-danger">—</span>
+      </div>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">In Progress</span>
+        <span id="qs-prog" class="fw-bold text-warning">—</span>
+      </div>
+      <div class="d-flex justify-content-between small">
+        <span class="text-muted">Closed</span>
+        <span id="qs-closed" class="fw-bold text-success">—</span>
+      </div>
+    </div>
+
+    <div class="p-2 border-top">
+      <a href="#" class="sidebar-link nav-link rounded px-3 py-2 small d-flex align-items-center gap-2"
+         onclick="backToProjects();return false;">
+        <span>◀</span> All Projects
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- Main area -->
+  <div class="d-flex flex-column flex-grow-1 overflow-hidden">
+
+    <!-- Topbar -->
+    <div class="d-flex align-items-center justify-content-between px-4 py-2 border-bottom flex-shrink-0 flex-wrap gap-2 topbar">
+      <div>
+        <div id="topbar-title" class="fw-bold">Dashboard</div>
+        <div id="topbar-project" class="text-muted small"></div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        <label class="btn btn-sm btn-outline-secondary mb-0" title="Upload CSV / XLSX / JSON">
+          📥 Import
+          <input id="upload-input" type="file" accept=".csv,.xlsx,.xls,.json" hidden onchange="handleUpload(event)" />
+        </label>
+        <button class="btn btn-sm btn-outline-secondary" onclick="exportCSV()">📤 Export CSV</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="downloadTemplate('csv')">⬇ Template CSV</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="downloadTemplate('xlsx')">⬇ Template XLSX</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteAll()">🗑 Delete All</button>
+        <button class="btn btn-sm btn-primary" onclick="openFindingModal()">+ Add Finding</button>
+      </div>
+    </div>
+
+    <!-- Views -->
+    <div class="flex-grow-1 overflow-auto p-3" id="view-wrap">
+
+      <!-- DASHBOARD VIEW -->
+      <div id="view-dashboard" class="view active">
+        <div id="stat-cards" class="row g-3 mb-3"></div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-5">
+            <div class="card h-100">
+              <div class="card-body">
+                <h6 class="card-subtitle text-muted text-uppercase mb-3" style="font-size:11px;letter-spacing:.05em">Severity Distribution</h6>
+                <canvas id="chart-sev" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-7">
+            <div class="card h-100">
+              <div class="card-body">
+                <h6 class="card-subtitle text-muted text-uppercase mb-3" style="font-size:11px;letter-spacing:.05em">Status Overview</h6>
+                <canvas id="chart-stat" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-body">
+                <h6 class="card-subtitle text-muted text-uppercase mb-3" style="font-size:11px;letter-spacing:.05em">High Priority Open Findings</h6>
+                <div id="high-priority-list"></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-body">
+                <h6 class="card-subtitle text-muted text-uppercase mb-3" style="font-size:11px;letter-spacing:.05em">Remediation Progress</h6>
+                <div id="remediation-prog"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINDINGS TABLE VIEW -->
+      <div id="view-findings" class="view">
+        <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+          <div class="input-group input-group-sm" style="width:220px">
+            <span class="input-group-text">🔍</span>
+            <input id="search-input" class="form-control" type="text" placeholder="Search code or name…" oninput="applyFilters()" />
+          </div>
+          <select id="filter-sev" class="form-select form-select-sm" style="width:160px" onchange="applyFilters()">
+            <option value="">All Severities</option>
+            <option>Critical</option><option>High</option><option>Medium</option>
+            <option>Low</option><option>Information</option>
+          </select>
+          <select id="filter-stat" class="form-select form-select-sm" style="width:150px" onchange="applyFilters()">
+            <option value="">All Statuses</option>
+            <option>Open</option><option>In Progress</option><option>Closed</option>
+          </select>
+          <span id="table-count" class="text-muted small ms-auto"></span>
+        </div>
+        <div class="table-responsive rounded border">
+          <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-header sticky-top">
+              <tr>
+                <th class="sortable ps-3" onclick="doSort('no')">#<span id="s-no"></span></th>
+                <th>Code</th>
+                <th class="sortable" onclick="doSort('vulnerability')">Vulnerability<span id="s-vulnerability"></span></th>
+                <th class="sortable" onclick="doSort('risk_rating')">Severity<span id="s-risk_rating"></span></th>
+                <th>Reference</th>
+                <th class="sortable" onclick="doSort('status')">Status<span id="s-status"></span></th>
+                <th class="sortable" onclick="doSort('date_found')">Date Found<span id="s-date_found"></span></th>
+                <th class="pe-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="findings-tbody"></tbody>
+          </table>
+        </div>
+        <div id="pagination" class="d-flex align-items-center gap-1 mt-3 flex-wrap"></div>
+      </div>
+
+      <!-- TIMELINE VIEW -->
+      <div id="view-timeline" class="view">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+          <select id="tl-filter-sev" class="form-select form-select-sm" style="width:160px" onchange="renderTimeline()">
+            <option value="">All Severities</option>
+            <option>Critical</option><option>High</option><option>Medium</option>
+            <option>Low</option><option>Information</option>
+          </select>
+          <select id="tl-filter-stat" class="form-select form-select-sm" style="width:150px" onchange="renderTimeline()">
+            <option value="">All Statuses</option>
+            <option>Open</option><option>In Progress</option><option>Closed</option>
+          </select>
+        </div>
+        <div id="timeline-container" class="card p-3"></div>
+      </div>
+
+    </div><!-- /view-wrap -->
+  </div><!-- /main flex -->
+</div><!-- /page-dashboard -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════ -->
+
+<!-- Project Modal -->
+<div class="modal fade" id="modal-project" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-project-title">New Project</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-sm-3">
+            <label class="form-label small fw-semibold">Prefix</label>
+            <input id="p-prefix" type="text" class="form-control form-control-sm font-monospace text-uppercase"
+              placeholder="PT" maxlength="10" />
+            <div class="form-text" style="font-size:10px">PT, VA, RA …</div>
+          </div>
+          <div class="col-sm-9">
+            <label class="form-label small fw-semibold">Project Name *</label>
+            <input id="p-name" type="text" class="form-control form-control-sm" placeholder="e.g. Web App Pentest 2025 Q1" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Client</label>
+            <input id="p-client" type="text" class="form-control form-control-sm" placeholder="Client name" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Pentest Type</label>
+            <select id="p-type" class="form-select form-select-sm">
+              <option value="">— Select —</option>
+              <option>Web Application</option>
+              <option>Mobile Application</option>
+              <option>Network / Infrastructure</option>
+              <option>API</option>
+              <option>Cloud</option>
+              <option>Red Team</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Start Date</label>
+            <input id="p-start" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">End Date</label>
+            <input id="p-end" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Scope / Target</label>
+            <textarea id="p-scope" class="form-control form-control-sm" rows="2"
+              placeholder="e.g. https://target.example.com, 192.168.1.0/24"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Description</label>
+            <textarea id="p-desc" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="saveProject()">Save Project</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Finding Modal -->
+<div class="modal fade" id="modal-finding" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modal-finding-title">Add Finding</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Vulnerability Name *</label>
+            <input id="f-vulnerability" type="text" class="form-control form-control-sm"
+              placeholder="e.g. SQL Injection in login endpoint" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Risk Rating *</label>
+            <select id="f-risk_rating" class="form-select form-select-sm">
+              <option>Critical</option><option>High</option>
+              <option selected>Medium</option><option>Low</option><option>Information</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Status</label>
+            <select id="f-status" class="form-select form-select-sm">
+              <option selected>Open</option><option>In Progress</option><option>Closed</option>
+            </select>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Reference (CWE / OWASP)</label>
+            <input id="f-reference" type="text" class="form-control form-control-sm"
+              placeholder="e.g. CWE-89, OWASP A03:2021" />
+          </div>
+          <div class="col-sm-3">
+            <label class="form-label small fw-semibold">CVE ID</label>
+            <input id="f-cve_id" type="text" class="form-control form-control-sm" placeholder="CVE-2024-1234" />
+          </div>
+          <div class="col-sm-3">
+            <label class="form-label small fw-semibold">CVSS Score</label>
+            <input id="f-cvss_score" type="text" class="form-control form-control-sm" placeholder="9.8" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Date Found</label>
+            <input id="f-date_found" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label small fw-semibold">Due Date</label>
+            <input id="f-due_date" type="date" class="form-control form-control-sm" />
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Affected Endpoint / Location</label>
+            <textarea id="f-affected" class="form-control form-control-sm" rows="3"
+              placeholder="e.g. POST /api/v1/login&#10;GET /api/v1/users/{id}"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Observation &amp; Implication</label>
+            <textarea id="f-observation" class="form-control form-control-sm" rows="4"
+              placeholder="Describe what was found and its impact…"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Recommendation</label>
+            <textarea id="f-recommendation" class="form-control form-control-sm" rows="4"
+              placeholder="Describe how to fix the vulnerability…"></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Remark</label>
+            <textarea id="f-remark" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="saveFinding()">Save Finding</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Finding Detail Modal -->
+<div class="modal fade" id="modal-detail" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detail-vuln-name"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detail-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="deleteFinding(currentDetail)">Delete</button>
+        <button type="button" class="btn btn-sm btn-primary" onclick="editFromDetail(currentDetail)">Edit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal fade" id="modal-confirm" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-msg" class="mb-0 small">Are you sure? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-sm btn-danger" id="confirm-delete-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast" class="toast align-items-center border-0" role="alert" aria-live="assertive"
+       aria-atomic="true" data-bs-autohide="true" data-bs-delay="3500">
+    <div class="d-flex">
+      <div class="toast-body fw-semibold small" id="toast-body"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
